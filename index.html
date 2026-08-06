@@ -1,0 +1,525 @@
+<title>异地就医备案 · 决策器</title>
+<style>
+  :root{
+    --paper:#F2F5F6;
+    --card:#FFFFFF;
+    --ink:#141B20;
+    --ink-2:#43535C;
+    --ink-3:#75868F;
+    --line:#DCE3E6;
+    --line-2:#EAEFF1;
+    --accent:#0F6E78;
+    --accent-soft:#E2F0F1;
+    --clay:#A8492A;
+    --clay-soft:#F7E9E3;
+    --moss:#3A6B4A;
+    --moss-soft:#E6F0E8;
+    --amber:#8A6314;
+    --amber-soft:#F7EFDC;
+    --shadow:0 1px 2px rgba(20,27,32,.05), 0 8px 24px -12px rgba(20,27,32,.18);
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#0F1418; --card:#161D22; --ink:#E8EEF0; --ink-2:#A7B7BF; --ink-3:#72858E;
+      --line:#263138; --line-2:#1E272D;
+      --accent:#4FB3BC; --accent-soft:#123336;
+      --clay:#E0895F; --clay-soft:#33201A;
+      --moss:#7FB88E; --moss-soft:#17291C;
+      --amber:#D3AA51; --amber-soft:#2C2413;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0F1418; --card:#161D22; --ink:#E8EEF0; --ink-2:#A7B7BF; --ink-3:#72858E;
+    --line:#263138; --line-2:#1E272D;
+    --accent:#4FB3BC; --accent-soft:#123336;
+    --clay:#E0895F; --clay-soft:#33201A;
+    --moss:#7FB88E; --moss-soft:#17291C;
+    --amber:#D3AA51; --amber-soft:#2C2413;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+  :root[data-theme="light"]{
+    --paper:#F2F5F6; --card:#FFFFFF; --ink:#141B20; --ink-2:#43535C; --ink-3:#75868F;
+    --line:#DCE3E6; --line-2:#EAEFF1;
+    --accent:#0F6E78; --accent-soft:#E2F0F1;
+    --clay:#A8492A; --clay-soft:#F7E9E3;
+    --moss:#3A6B4A; --moss-soft:#E6F0E8;
+    --amber:#8A6314; --amber-soft:#F7EFDC;
+    --shadow:0 1px 2px rgba(20,27,32,.05), 0 8px 24px -12px rgba(20,27,32,.18);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:28px 20px 72px}
+
+  /* ---------- masthead ---------- */
+  .masthead{display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px 24px; padding-bottom:18px; border-bottom:1px solid var(--line)}
+  .mast-main{flex:1 1 320px; min-width:0}
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 8px
+  }
+  h1{margin:0; font-size:clamp(24px,3.4vw,33px); line-height:1.2; letter-spacing:-.02em; font-weight:680; text-wrap:balance}
+  .dek{margin:8px 0 0; color:var(--ink-2); max-width:62ch; font-size:14.5px}
+  .indep{
+    flex:0 0 auto; max-width:290px; font-size:11.5px; line-height:1.5; color:var(--ink-3);
+    border-left:2px solid var(--line); padding-left:12px
+  }
+
+  /* ---------- layout ---------- */
+  .cols{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.02fr); gap:28px; margin-top:26px; align-items:start}
+  @media (max-width:900px){ .cols{grid-template-columns:minmax(0,1fr); gap:22px} }
+
+  .panel{background:var(--card); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow)}
+  .panel-hd{display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:15px 18px; border-bottom:1px solid var(--line-2)}
+  .panel-hd h2{margin:0; font-size:13px; letter-spacing:.06em; text-transform:uppercase; font-family:var(--mono); color:var(--ink-2); font-weight:600}
+  .panel-bd{padding:6px 18px 18px}
+
+  /* ---------- questions ---------- */
+  .q{padding:15px 0; border-bottom:1px dashed var(--line)}
+  .q:last-child{border-bottom:0}
+  .q-hd{display:flex; gap:9px; align-items:baseline; margin-bottom:10px}
+  .q-n{font-family:var(--mono); font-size:11px; color:var(--ink-3); font-variant-numeric:tabular-nums; padding-top:2px}
+  .q-t{font-weight:620; font-size:14.5px; letter-spacing:-.005em}
+  .q-note{display:block; font-weight:400; font-size:12.5px; color:var(--ink-3); margin-top:3px; line-height:1.45}
+  .opts{display:flex; flex-wrap:wrap; gap:7px; padding-left:22px}
+  .opt{position:relative}
+  .opt input{position:absolute; opacity:0; width:0; height:0}
+  .opt span{
+    display:block; cursor:pointer; user-select:none;
+    border:1px solid var(--line); background:transparent; color:var(--ink-2);
+    padding:6px 11px; border-radius:6px; font-size:13.5px; transition:.14s ease;
+  }
+  .opt span:hover{border-color:var(--accent); color:var(--ink)}
+  .opt input:checked + span{background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:600}
+  .opt input:focus-visible + span{outline:2px solid var(--accent); outline-offset:2px}
+  .q[hidden]{display:none}
+
+  /* ---------- verdict ---------- */
+  .verdict{padding:18px}
+  .v-empty{color:var(--ink-3); font-size:14px; padding:34px 4px; text-align:center; line-height:1.7}
+  .v-empty b{display:block; color:var(--ink-2); font-weight:600; margin-bottom:5px}
+
+  .headline{
+    border:1px solid var(--accent); background:var(--accent-soft);
+    border-radius:8px; padding:14px 15px; margin-bottom:16px
+  }
+  .headline .lab{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); opacity:.85}
+  .headline .val{font-size:19px; font-weight:680; margin-top:3px; letter-spacing:-.01em; line-height:1.3}
+  .headline .sub{font-size:13px; color:var(--ink-2); margin-top:5px}
+
+  .facts{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:9px; margin-bottom:16px}
+  .fact{border:1px solid var(--line); border-radius:7px; padding:10px 11px; background:transparent}
+  .fact .k{font-size:11px; color:var(--ink-3); font-family:var(--mono); letter-spacing:.05em; text-transform:uppercase}
+  .fact .v{font-size:14.5px; font-weight:620; margin-top:4px; font-variant-numeric:tabular-nums; line-height:1.35}
+
+  .sec-t{
+    font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase;
+    color:var(--ink-3); margin:18px 0 9px; display:flex; align-items:center; gap:9px
+  }
+  .sec-t::after{content:""; flex:1; height:1px; background:var(--line-2)}
+
+  ol.steps{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; counter-reset:s}
+  ol.steps li{
+    counter-increment:s; position:relative; padding:9px 0 9px 30px; font-size:13.8px; line-height:1.55;
+    border-bottom:1px solid var(--line-2)
+  }
+  ol.steps li:last-child{border-bottom:0}
+  ol.steps li::before{
+    content:counter(s); position:absolute; left:0; top:10px;
+    font-family:var(--mono); font-size:10.5px; color:var(--accent);
+    border:1px solid var(--accent); border-radius:50%;
+    width:17px; height:17px; display:grid; place-items:center; font-variant-numeric:tabular-nums
+  }
+  ol.steps b{font-weight:640}
+  .say{
+    display:block; margin-top:6px; padding:8px 10px; background:var(--accent-soft);
+    border-left:2px solid var(--accent); border-radius:0 5px 5px 0;
+    font-size:13px; color:var(--ink); line-height:1.5
+  }
+
+  .risk{display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--line-2); font-size:13.6px; line-height:1.55}
+  .risk:last-child{border-bottom:0}
+  .risk .ic{flex:0 0 auto; width:16px; height:16px; border-radius:4px; margin-top:3px}
+  .risk.hi .ic{background:var(--clay)}
+  .risk.md .ic{background:var(--amber)}
+  .risk.ok .ic{background:var(--moss)}
+  .risk b{font-weight:640}
+
+  /* ---------- source chips ---------- */
+  .reftbl{border:1px solid var(--line); border-radius:7px; overflow:hidden}
+  .refrow{display:grid; grid-template-columns:minmax(96px,auto) 1fr; gap:12px; padding:9px 11px; border-bottom:1px solid var(--line-2); font-size:13.2px; line-height:1.5}
+  .refrow:last-child{border-bottom:0}
+  .refrow:nth-child(odd){background:var(--line-2)}
+  .refk{font-weight:640; white-space:nowrap}
+  .refv{color:var(--ink-2)}
+  @media (max-width:460px){ .refrow{grid-template-columns:1fr; gap:2px} }
+
+  .chip{
+    display:inline-block; font-family:var(--mono); font-size:9.5px; letter-spacing:.08em;
+    padding:1.5px 5px; border-radius:3px; vertical-align:1.5px; margin-left:5px; font-weight:600; white-space:nowrap
+  }
+  .chip.nat{background:var(--moss-soft); color:var(--moss)}
+  .chip.loc{background:var(--amber-soft); color:var(--amber)}
+  .chip.obs{background:var(--clay-soft); color:var(--clay)}
+
+  .legend{display:flex; flex-wrap:wrap; gap:14px; margin-top:22px; padding:14px 16px; border:1px solid var(--line); border-radius:9px; background:var(--card)}
+  .legend div{font-size:12.5px; color:var(--ink-2); flex:1 1 260px; line-height:1.5}
+  .legend b{color:var(--ink)}
+
+  .foot{margin-top:26px; padding-top:16px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-3); line-height:1.65}
+  .foot a{color:var(--accent); text-decoration:none; border-bottom:1px solid transparent}
+  .foot a:hover{border-bottom-color:var(--accent)}
+  .foot .srcs{margin-top:7px; display:flex; flex-wrap:wrap; gap:4px 14px}
+
+  .reset{
+    font-family:var(--mono); font-size:11px; letter-spacing:.05em; color:var(--ink-3);
+    background:transparent; border:1px solid var(--line); border-radius:5px;
+    padding:4px 9px; cursor:pointer; transition:.14s
+  }
+  .reset:hover{border-color:var(--accent); color:var(--accent)}
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important} }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="mast-main">
+      <p class="eyebrow">异地就医 · 备案决策器</p>
+      <h1>答 6 个问题，算出你该办哪类备案</h1>
+      <p class="dek">备案类型选错、或漏掉到院的那一步，报销比例可能差一大截，甚至全额自费。这个工具把散落的规则拼成一条针对你的路径，并标明每条规则的来源可信度。</p>
+    </div>
+    <p class="indep">独立制作的个人助手工具，非任何医保经办机构的官方产品，不代表官方口径。结论仅供准备参考，最终以参保地医保部门答复为准。</p>
+  </header>
+
+  <div class="cols">
+
+    <!-- ============ QUESTIONS ============ -->
+    <section class="panel" aria-label="情况录入">
+      <div class="panel-hd">
+        <h2>你的情况</h2>
+        <button class="reset" type="button" id="reset">清空重填</button>
+      </div>
+      <div class="panel-bd" id="form">
+
+        <div class="q" data-q="scope">
+          <div class="q-hd"><span class="q-n">01</span><span class="q-t">就医地和参保地是什么关系？
+            <span class="q-note">参保地 = 你交医保的地方；就医地 = 你要去看病的地方。</span></span></div>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="scope" value="cross"><span>跨省</span></label>
+            <label class="opt"><input type="radio" name="scope" value="inprov"><span>同省不同市</span></label>
+          </div>
+        </div>
+
+        <div class="q" data-q="who">
+          <div class="q-hd"><span class="q-n">02</span><span class="q-t">你属于哪种情形？
+            <span class="q-note">这一题决定备案类型，也决定报销比例——是整个流程里最贵的一题。</span></span></div>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="who" value="retire"><span>退休后异地定居，户籍已迁入</span></label>
+            <label class="opt"><input type="radio" name="who" value="live"><span>在就医地长期居住</span></label>
+            <label class="opt"><input type="radio" name="who" value="work"><span>常驻异地工作 / 派驻</span></label>
+            <label class="opt"><input type="radio" name="who" value="refer"><span>参保地医院转诊过去</span></label>
+            <label class="opt"><input type="radio" name="who" value="temp"><span>出差、旅游、探亲临时看病</span></label>
+            <label class="opt"><input type="radio" name="who" value="emerg"><span>突发急诊抢救</span></label>
+          </div>
+        </div>
+
+        <div class="q" data-q="proof" hidden>
+          <div class="q-hd"><span class="q-n">03</span><span class="q-t">手上有居住证或就医地户口簿吗？
+            <span class="q-note">没有也能办——可以走个人承诺书。但承诺制有个时限陷阱，见右侧。</span></span></div>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="proof" value="yes"><span>有</span></label>
+            <label class="opt"><input type="radio" name="proof" value="no"><span>没有 / 还在办</span></label>
+          </div>
+        </div>
+
+        <div class="q" data-q="care">
+          <div class="q-hd"><span class="q-n">04</span><span class="q-t">这次要看的是什么？
+            <span class="q-note">住院、普通门诊、门诊慢特病，三者规则完全不同。</span></span></div>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="care" value="inpat"><span>住院</span></label>
+            <label class="opt"><input type="radio" name="care" value="outpat"><span>普通门诊</span></label>
+            <label class="opt"><input type="radio" name="care" value="chronic"><span>门诊慢特病</span></label>
+          </div>
+        </div>
+
+        <div class="q" data-q="timing">
+          <div class="q-hd"><span class="q-n">05</span><span class="q-t">现在进行到哪一步了？</span></div>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="timing" value="before"><span>还没去，提前准备</span></label>
+            <label class="opt"><input type="radio" name="timing" value="onsite"><span>人已经到了，还没结算</span></label>
+            <label class="opt"><input type="radio" name="timing" value="after"><span>已经看完并自己垫付了</span></label>
+          </div>
+        </div>
+
+        <div class="q" data-q="reg">
+          <div class="q-hd"><span class="q-n">06</span><span class="q-t">备案办了吗？</span></div>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="reg" value="none"><span>没办</span></label>
+            <label class="opt"><input type="radio" name="reg" value="done"><span>办好了</span></label>
+            <label class="opt"><input type="radio" name="reg" value="unsure"><span>办了但不确定类型</span></label>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============ VERDICT ============ -->
+    <section class="panel" aria-label="结论" aria-live="polite">
+      <div class="panel-hd">
+        <h2>给你的结论</h2>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--ink-3)" id="progress">0 / 6</span>
+      </div>
+      <div class="verdict" id="verdict">
+        <p class="v-empty"><b>左侧答完题，这里出结果</b>会给出：该办哪类备案、有效期多久、要带什么材料、到医院必须做的动作、以及你这个情形下最容易踩空的地方。</p>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="legend">
+    <div><span class="chip nat">全国</span> <b>全国统一口径。</b>来自国家医保局公开政策，各地一致，可直接照做。</div>
+    <div><span class="chip loc">属地</span> <b>各地不一样，必须自查。</b>本工具给出的是已公开省市的实际数值，只能当参照，你的参保地可能不同。</div>
+    <div><span class="chip obs">实测</span> <b>来自患者公开分享，不是政策文件。</b>没有写进任何红头文件，但反复被提到，值得照做一次以防万一。</div>
+  </div>
+
+  <footer class="foot">
+    <p><b>为什么需要这个工具：</b>报销比例采用「就医地目录 + 参保地起付线/比例/封顶线」的组合口径，而备案类型、有效期、先行自付比例又由参保地各自规定。同一个问题，对不同人的正确答案不同——所以通用攻略几乎必然对不上你的情况。</p>
+    <p style="margin-top:8px"><b>核验说明：</b>本页规则已对照下列公开来源核对（2026-07 核验）。政策更新频繁，办理前请以国家医保服务平台 APP 或参保地医保局最新公告为准。</p>
+    <div class="srcs">
+      <a href="https://ylbzj.wuxi.gov.cn/doc/2023/11/02/4099194.shtml" target="_blank" rel="noopener">医保发〔2022〕22 号 · 支付比例降幅与备案有效期原文</a>
+      <a href="https://www.yunan.gov.cn/yfyaybj/gkmlpt/content/1/1887/post_1887340.html" target="_blank" rel="noopener">广东 · 省内跨市就医直接结算经办规程</a>
+      <a href="https://www.nhsa.gov.cn/art/2025/6/7/art_14_16754.html" target="_blank" rel="noopener">国家医保局 · 跨省异地就医如何直接报销</a>
+      <a href="https://www.news.cn/politics/20250316/4f17af32c7634a689f3257aefa4c8a92/c.html" target="_blank" rel="noopener">新华网 · 国家医保局手把手教学</a>
+      <a href="https://hznews.hangzhou.com.cn/kejiao/content/2026-07/24/content_9262765.htm" target="_blank" rel="noopener">杭州 · 异地就医备案结算热门问题（2026-07-24）</a>
+      <a href="https://ybj.ezhou.gov.cn/xxgk/zc/qtzdgkwj/202601/t20260130_748904.html" target="_blank" rel="noopener">湖北省 · 规范异地就医备案管理服务通知（2026-04-01 施行）</a>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var FIELDS = ["scope","who","proof","care","timing","reg"];
+  var state = {};
+  var form = document.getElementById("form");
+  var out  = document.getElementById("verdict");
+  var prog = document.getElementById("progress");
+
+  var LONG_TERM = {retire:1, live:1, work:1};
+
+  function needProof(){ return state.who && LONG_TERM[state.who] === 1; }
+
+  function required(){
+    var r = ["scope","who","care","timing","reg"];
+    if (needProof()) r.push("proof");
+    return r;
+  }
+
+  function esc(s){ return String(s).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
+  function chip(t){
+    var m = {nat:"全国", loc:"属地", obs:"实测"};
+    return '<span class="chip '+t+'">'+m[t]+'</span>';
+  }
+
+  // ---- rule engine ------------------------------------------------------
+  function decide(){
+    var s = state, R = {facts:[], steps:[], risks:[]};
+
+    // --- 省内异地：多数地区已免备案，但不是全部
+    if (s.scope === "inprov"){
+      R.title = "省内异地：先确认你的省是否已免备案";
+      R.sub   = "多个省份已取消省内异地就医备案，但并非全国统一，仍有省份要求备案后才能直接结算。";
+      R.facts.push(["备案类型","以省内规定为准"]);
+      R.facts.push(["查询入口","参保地医保局"]);
+      R.risks.push(["md","省内是否免备案属于省级规定"+chip("loc")+"。杭州等地明确<b>省内异地就医免备案</b>，但门诊慢特病在部分省份仍要求先备案。别拿别省的经验套。"]);
+    } else {
+      // --- 跨省
+      var isLong = LONG_TERM[s.who] === 1;
+      var typeName, valid, validNote;
+
+      if (s.who === "retire"){ typeName = "异地安置退休人员备案"; valid = "长期有效"; validNote="户籍已迁入就医地"; }
+      else if (s.who === "live"){ typeName = "异地长期居住人员备案"; valid = "约 2 年"; validNote="到期线上续期"; }
+      else if (s.who === "work"){ typeName = "常驻异地工作人员备案"; valid = "约 1 年"; validNote="到期线上续期"; }
+      else if (s.who === "refer"){ typeName = "异地转诊人员备案"; valid = "约 6 个月"; validNote="需参保地医院开转诊"; }
+      else if (s.who === "emerg"){ typeName = "急诊抢救（可不受备案限制）"; valid = "—"; validNote="事后补办更稳妥"; }
+      else { typeName = "临时外出就医备案"; valid = "约 6 个月"; validNote="到期线上续期"; }
+
+      R.title = typeName;
+      R.facts.push(["备案有效期", valid]);
+
+      // 报销口径（全国统一）
+      R.facts.push(["报销目录","就医地"]);
+      R.facts.push(["起付/比例/封顶","参保地"]);
+
+      // 先行自付
+      // 医保发〔2022〕22号：长期居住类按参保地本地标准；转诊/急诊降幅≤10个百分点；
+      // 其他非急诊未转诊临时外出降幅≤20个百分点。注意原文是"支付比例降幅"，不等于"先行自付"。
+      if (isLong){
+        R.sub = "长期居住类是这几种里待遇最好的一类——起付标准、支付比例、最高支付限额原则上执行参保地本地就医的标准，没有额外降幅。";
+        R.facts.push(["支付比例降幅","无"]);
+        R.risks.push(["ok","国家层面明确：跨省长期居住人员在备案地就医结算时，起付标准、支付比例、最高支付限额<b>原则上执行参保地规定的本地就医标准</b>"+chip("nat")+"。也就是说办对了这一类，报销待遇和在老家看病基本一致。"]);
+      } else if (s.who === "refer" || s.who === "emerg"){
+        R.sub = "转诊和急诊抢救属于「从轻」的一档：支付比例有降幅，但国家规定的上限只有其他临时外出的一半。";
+        R.facts.push(["支付比例降幅","≤ 10 个百分点"]);
+        R.risks.push(["md","<b>你这一档比普通临时外出划算一倍。</b>国家规定转诊人员和急诊抢救人员「支付比例的降幅<b>不超过 10 个百分点</b>」，而非急诊且未转诊的其他临时外出是不超过 20 个百分点"+chip("nat")+"。所以<b>能开转诊就一定要开</b>——一张转诊单的价值就是这 10 个百分点。"]);
+      } else {
+        R.sub = "普通临时外出是降幅最大的一档。若你其实符合长期居住条件、或能补一张转诊单，都比直接这样去划算。";
+        R.facts.push(["支付比例降幅","≤ 20 个百分点"]);
+        R.risks.push(["hi","<b>这是最贵的一个岔路口。</b>非急诊且未转诊的临时外出，国家规定支付比例降幅<b>不超过 20 个百分点</b>"+chip("nat")+"——是转诊/急诊档（≤10）的两倍。两条省钱路径：①在就医地已住满或派驻满三个月，改办<b>长期居住类</b>，无降幅；②让参保地医院开<b>转诊单</b>，降幅减半。"]);
+      }
+
+      // 降幅 ≠ 先行自付，这是攻略最常写错的地方
+      if (!isLong){
+        R.risks.push(["md","<b>注意「降幅」和「先自付」不是一回事。</b>国家原文是「支付比例的降幅不超过 N 个百分点」（例如本可报 70%，降后报 50%）；而部分地区以另一种形式落地，如杭州写的是「由个人<b>先自付 20%</b> 后再按规定结算」"+chip("loc")+"。两种算法出来的钱不一样，看你参保地用哪种口径。"]);
+        R.refs = [
+          ["全国上限", "转诊·急诊 ≤10 个百分点；其他临时外出 ≤20 个百分点", "nat"],
+          ["杭州", "未备案或仅临时外出备案：个人先自付 20% 后再按规定结算", "loc"],
+          ["广东", "转诊·急诊降幅约 10 个百分点；其他临时外出约 20 个百分点", "loc"],
+          ["你的参保地", "以上只是已公开地区的实际做法，必须自查", "loc"]
+        ];
+      }
+
+      // 承诺制
+      if (isLong && s.proof === "no"){
+        R.risks.push(["hi","<b>没有居住证也能办，但别忽略补材料的时限。</b>长期居住类可用<b>个人承诺书</b>代替居住证或户口簿"+chip("loc")+"。代价是：湖北规定承诺制备案的有效期只有 <b>30 日</b>，须在提交次日起 <b>30 日内一次性补齐</b>认定材料，逾期备案失效；已用该备案结算过住院或门诊慢特病的，还会纳入信用评价。"]);
+        R.facts.push(["承诺制有效期","约 30 日"]);
+      } else if (isLong && s.proof === "yes"){
+        R.risks.push(["ok","材料齐全，走常规材料制即可，不用承担承诺制 30 日补材料的时限风险"+chip("loc")+"。"]);
+      }
+
+      // 就诊类型
+      if (s.care === "outpat"){
+        R.risks.push(["md","<b>普通门诊要单独确认。</b>普通门诊的跨省直接结算开通范围与住院不同，联网定点机构数量少得多。行前务必在国家医保服务平台 APP 查「统筹区开通情况」和「异地联网定点机构」"+chip("nat")+"，别默认能刷。"]);
+      } else if (s.care === "chronic"){
+        R.risks.push(["md","<b>门诊慢特病是双重门槛。</b>一要在<b>参保地</b>先完成慢特病病种认定，二要就医医院开通了对应病种的跨省直接结算。跨省门诊慢特病需备案才能直接结算"+chip("loc")+"；开通病种数各地不同（如杭州为 9 个病种），全国范围正在扩大。"]);
+      } else {
+        R.risks.push(["ok","住院是跨省直接结算覆盖最好的场景，联网定点机构最多，办妥备案后大多能直接刷卡结算"+chip("nat")+"。"]);
+      }
+
+      // 时点相关
+      if (s.timing === "onsite"){
+        R.risks.push(["hi","<b>还没出院结算，这是最后的黄金窗口。</b>国家明确：参保人员跨省<b>出院结算前</b>补办异地就医备案的，就医地联网定点医疗机构<b>应为其办理跨省直接结算</b>"+chip("nat")+"。也就是说人已经在医院、备案没办，现在线上补办仍然来得及——一旦自费结完账，难度立刻上一个台阶。"]);
+      }
+      if (s.timing === "after"){
+        R.risks.push(["hi","<b>已经垫付了，还有两条路。</b>①申请<b>补办备案</b>：湖北规定补办的开始日期距当前<b>不得超过 60 日</b>"+chip("loc")+"；广东则规定出院自费结算后补办的，可申请<b>补记账</b>或零星报销"+chip("loc")+"。②回参保地医保经办机构<b>手工报销</b>。两条路都对材料完整性要求极高——票据、费用总清单、诊断证明、出院小结，一张都别丢。"]);
+      }
+      if (s.reg === "unsure"){
+        R.risks.push(["md","<b>先查清备案类型再行动。</b>长期居住类和临时外出类的待遇差就在那 20% 上。在国家医保服务平台 APP 的备案记录里可以看到已办类型；注意有的地方规定<b>备案生效后三个月内原则上不能变更</b>"+chip("loc")+"，越早确认越主动。"]);
+      }
+
+      // ---- steps
+      var steps = [];
+      if (s.reg !== "done"){
+        steps.push(["线上办备案","国家医保服务平台 APP，或国家医保局微信公众号 → 医保服务 → 异地就医备案小程序"+chip("nat")+"。线上申请一般 2 个工作日内办结，线下窗口即时办结"+chip("loc")+"。"]);
+      }
+      steps.push(["查医院是否联网","在同一个 APP 里查<b>异地联网定点医疗机构</b>名单，确认你要去的医院在列"+chip("nat")+"。不在名单里就无法直接结算，只能自己垫付后回参保地手工报。"]);
+      steps.push(["查统筹区是否开通","查<b>统筹区开通情况</b>，选参保地 + 就医地，确认这条线路对应你的就诊类型（住院/普通门诊/门诊慢特病）已开通"+chip("nat")+"。"]);
+      steps.push(["到院先去人工窗口","别直接自助机挂号。先到人工窗口说明你是异地医保并已备案，请对方按异地医保建档、关联挂号"+chip("obs")+"。多位患者反映漏掉这一步会导致备案办了却仍被全额收费——虽然没有写进政策文件，但做一次成本极低。", "我是异地医保，已经办过异地备案了，请用异地医保给我挂号、关联建档。"]);
+      steps.push(["结算时核对通道","缴费/出院结算时确认走的是<b>异地就医直接结算</b>通道，并当场核对结算单上的报销金额"+chip("obs")+"。发现不对立刻在窗口处理，离院后再改会麻烦得多。"]);
+      if (s.who === "emerg"){
+        steps.push(["事后补办备案","急诊可不受备案限制"+chip("loc")+"，但补办备案通常能改善待遇并减少争议。注意补办有 60 日的时间窗。"]);
+      }
+      steps.push(["留全套票据","无论是否直接结算成功，收费票据、费用总清单、诊断证明、出院小结全部留存"+chip("nat")+"。这是手工报销唯一的凭据来源。"]);
+      R.steps = steps;
+    }
+    return R;
+  }
+
+  // ---- render -----------------------------------------------------------
+  function render(){
+    // 03 只对长期居住类显示
+    var pq = form.querySelector('[data-q="proof"]');
+    if (needProof()) pq.removeAttribute("hidden");
+    else { pq.setAttribute("hidden",""); delete state.proof; }
+
+    // 隐藏第 3 题时其余题目重新编号，避免出现 01 02 04
+    var n = 0;
+    Array.prototype.forEach.call(form.querySelectorAll(".q"), function(q){
+      if (q.hasAttribute("hidden")) return;
+      n++;
+      q.querySelector(".q-n").textContent = (n < 10 ? "0" : "") + n;
+    });
+
+    var req = required();
+    var done = req.filter(function(k){ return state[k]; }).length;
+    prog.textContent = done + " / " + req.length;
+
+    if (done < req.length){
+      out.innerHTML = '<p class="v-empty"><b>左侧答完题，这里出结果</b>会给出：该办哪类备案、有效期多久、要带什么材料、到医院必须做的动作、以及你这个情形下最容易踩空的地方。</p>';
+      return;
+    }
+
+    var R = decide(), h = "";
+
+    h += '<div class="headline"><div class="lab">你应该办</div><div class="val">'+R.title+'</div>'
+       + (R.sub ? '<div class="sub">'+R.sub+'</div>' : '') + '</div>';
+
+    if (R.facts.length){
+      h += '<div class="facts">';
+      R.facts.forEach(function(f){
+        h += '<div class="fact"><div class="k">'+esc(f[0])+'</div><div class="v">'+esc(f[1])+'</div></div>';
+      });
+      h += '</div>';
+    }
+
+    if (R.steps.length){
+      h += '<div class="sec-t">按顺序做这几件事</div><ol class="steps">';
+      R.steps.forEach(function(st){
+        h += '<li><b>'+st[0]+'</b> — '+st[1];
+        if (st[2]) h += '<span class="say">到窗口就说这句，一个字都别少：<br>「'+esc(st[2])+'」</span>';
+        h += '</li>';
+      });
+      h += '</ol>';
+    }
+
+    if (R.risks.length){
+      h += '<div class="sec-t">你这个情形的关键风险</div>';
+      R.risks.forEach(function(r){
+        h += '<div class="risk '+r[0]+'"><span class="ic"></span><span>'+r[1]+'</span></div>';
+      });
+    }
+
+    if (R.refs && R.refs.length){
+      h += '<div class="sec-t">降幅口径 · 已核验地区对照</div><div class="reftbl">';
+      R.refs.forEach(function(r){
+        h += '<div class="refrow"><div class="refk">'+esc(r[0])+chip(r[2])+'</div><div class="refv">'+esc(r[1])+'</div></div>';
+      });
+      h += '</div>';
+    }
+
+    out.innerHTML = h;
+  }
+
+  form.addEventListener("change", function(e){
+    if (e.target && e.target.name){ state[e.target.name] = e.target.value; render(); }
+  });
+
+  document.getElementById("reset").addEventListener("click", function(){
+    state = {};
+    Array.prototype.forEach.call(form.querySelectorAll("input"), function(i){ i.checked = false; });
+    render();
+  });
+
+  // 支持 ?scope=cross&who=live... 预填，方便截图与分享具体情形
+  (function preset(){
+    var p = new URLSearchParams(location.search), touched = false;
+    var th = p.get("theme");
+    if (th === "dark" || th === "light") document.documentElement.setAttribute("data-theme", th);
+    FIELDS.forEach(function(f){
+      var v = p.get(f); if (!v) return;
+      var el = form.querySelector('input[name="'+f+'"][value="'+v+'"]');
+      if (el){ el.checked = true; state[f] = v; touched = true; }
+    });
+    if (touched) render();
+  })();
+
+  render();
+})();
+</script>

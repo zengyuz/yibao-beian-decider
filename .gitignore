@@ -1,0 +1,5 @@
+.DS_Store
+*.swp
+.idea/
+.vscode/
+口播脚本*.md
